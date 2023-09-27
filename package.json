@@ -11,11 +11,15 @@
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "env": "^0.0.2",
+    "fs": "^0.0.1-security",
     "joi": "^17.10.2",
     "mongoose": "^7.5.3",
     "next": "latest",
+    "nodemailer": "^6.9.5",
+    "path": "^0.12.7",
     "react": "latest",
-    "react-dom": "latest"
+    "react-dom": "latest",
+    "winston": "^3.10.0"
   },
   "devDependencies": {
     "eslint": "latest",
