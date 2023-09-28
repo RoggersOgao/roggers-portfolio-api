@@ -3,6 +3,12 @@ import dbConnect from "../../../../lib/dbConnect";
 import Design from "../../../../models/Design";
 import { NextResponse } from "next/server";
 
+export const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
+
 const designSchema = Joi.object({
   design: Joi.object(),
   description: Joi.string().required().max(60),
@@ -46,7 +52,7 @@ export async function POST(request) {
     }else{
         try{
             const design = await Design.create(value);
-            return NextResponse.json({message:"Design Uploaded successfully 👽", data:design}, { status: 200 });
+            return NextResponse.json({message:"Design Uploaded successfully 👽", data:design}, { status: 200 }, { headers: corsHeaders });
         }catch(err){
             console.log(err)
         }
@@ -86,7 +92,8 @@ export async function PUT(request) {
     }
     return NextResponse.json(
       { message: "Design updated successfully! 👻", data: design },
-      { status: 200 }
+      { status: 200 }, 
+      { headers: corsHeaders }
     );
   } catch (err) {
     return NextResponse.json({ message: err.message }, { status: 500 });
@@ -111,7 +118,8 @@ export async function DELETE(request) {
     }
     return NextResponse.json(
       { message: "Design deleted successfully 👽" },
-      { status: 200 }
+      { status: 200 },
+      { headers: corsHeaders }
     );
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
