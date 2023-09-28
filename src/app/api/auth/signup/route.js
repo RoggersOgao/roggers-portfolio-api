@@ -4,7 +4,7 @@ import dbConnect from "../../../../../lib/dbConnect";
 import CredentialsOAuthUser from "../../../../../models/CredentialsOAuthUser";
 import User from "../../../../../models/User";
 import { NextResponse } from "next/server";
-import applyCorsMiddleware from "@/app/middleware"; // Adjust the import path as needed
+
 
 const socialSchema = Joi.object({
   linkedIn: Joi.string().optional(),
@@ -24,9 +24,7 @@ const usersSchema = Joi.object({
   name: Joi.string().max(60).required(),
   email: Joi.string().trim().lowercase().email().required(),
   password: Joi.string().min(8).max(100).optional(), // Optional for updates
-  image: Joi.string()
-    .uri({ scheme: ["https"] })
-    .optional(),
+  image: Joi.string().uri({ scheme: ["https"] }).optional(),
   socials: Joi.array().items(socialSchema).optional(),
   personalInfo: Joi.array().items(personalSchema).optional(),
   role: Joi.string().default("user").optional(),
@@ -47,9 +45,9 @@ export async function GET(request) {
       );
     }
     return NextResponse.json({ users }, { status: 200 });
-  } else if (email) {
-    users = await CredentialsOAuthUser.findOne({ email: email });
-    if (!users) {
+  }else if(email){
+    users = await CredentialsOAuthUser.findOne({email: email})
+    if(!users){
       return NextResponse.json(
         { message: "User not found 💩" },
         { status: 404 }
@@ -62,6 +60,7 @@ export async function GET(request) {
   }
 }
 
+
 export async function POST(request) {
   await dbConnect();
   try {
@@ -69,12 +68,9 @@ export async function POST(request) {
     const { error, value } = usersSchema.validate(res);
 
     if (error) {
-      return new Response(
+      return NextResponse.json(
         { message: "Invalid User input 💩", details: error.details },
-        {
-          status: 400,
-          headers: corHeaders,
-        }
+        { status: 400 }
       );
     }
 
@@ -84,6 +80,7 @@ export async function POST(request) {
     const userExists = await User.findOne({ email });
 
     if (userExists) {
+
       await User.findOneAndUpdate(
         { email },
         {
@@ -113,6 +110,7 @@ export async function POST(request) {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    
     if (!userExists) {
       const newUser = new User({
         name,
@@ -144,6 +142,38 @@ export async function POST(request) {
     return NextResponse.json({ error: err }, { status: 500 });
   }
 }
+// export async function PUT(request) {
+//   await dbConnect();
+//   try {
+//     const res = await request.json();
+//     const { error, value } = usersSchema.validate(res);
+//     if (error) {
+//       return NextResponse.json(
+//         { message: "Invalid User input 💩", details: error.details },
+//         { status: 400 }
+//       );
+//     }
+//     const { searchParams } = new URL(request.url);
+//     const id = searchParams.get("id");
+
+//     const { name, email, password, image, socials, personalInfo, role } = value;
+
+//     const salt = await bcrypt.genSalt(10);
+//     const hashedPassword = await bcrypt.hash(password, salt);
+
+//     const user = await CredentialsOAuthUser.findByIdAndUpdate(
+//       id,
+//       { name, email, password: hashedPassword, image, socials, personalInfo, role },
+//       { new: true, runValidator: true }
+//     );
+//     if (!user) {
+//       return NextResponse.json({ message: "User not found 💩" });
+//     }
+//     return NextResponse.json({ message: "User updated successfully! 👻", user }, { status: 200 });
+//   } catch (err) {
+//     return NextResponse.json({ error: err }, { status: 500 });
+//   }
+// }
 
 export async function DELETE(request) {
   await dbConnect();
@@ -170,7 +200,3 @@ export async function DELETE(request) {
   }
 }
 
-// Apply CORS middleware to the handlers
-export const corsEnabledGET = applyCorsMiddleware(GET);
-export const corsEnabledPOST = applyCorsMiddleware(POST);
-export const corsEnabledDELETE = applyCorsMiddleware(DELETE);
