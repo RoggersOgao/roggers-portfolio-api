@@ -2,15 +2,6 @@ import dbConnect from "../../../../../lib/dbConnect";
 import GithubOAuthUser from "../../../../../models/GithubOAuthUser";
 import { NextResponse } from "next/server";
 
-async function findUserByEmailOrId(email, id) {
-  if (id) {
-    return await GithubOAuthUser.findById(id);
-  } else if (email) {
-    return await GithubOAuthUser.findOne({ email });
-  } else {
-    return await GithubOAuthUser.find();
-  }
-}
 export async function GET(request) {
   await dbConnect();
   const { searchParams } = new URL(request.url);
@@ -20,12 +11,39 @@ export async function GET(request) {
 
   let user;
   try {
-    user = findUserByEmailOrId(email, id);
+    if (id) {
+      user = await GithubOAuthUser.findById(id);
+      if (!user) {
+        return NextResponse.json(
+          { message: "user not found 💩" },
+          { status: 404,
+          headers:getResponseHeaders(origin)
+          }
+        );
+      }
+      return NextResponse.json({ user }, { status: 200,
+        headers:getResponseHeaders(origin)
+      });
+    } else if (email) {
+      user = await GithubOAuthUser.findOne({ email: email });
+      if (!user) {
+        return NextResponse.json(
+          { message: "user not found 💩" },
+          { status: 404, 
+          headers:getResponseHeaders(origin) }
+        );
+      }
+      return NextResponse.json({ user }, { status: 200, 
+        headers:getResponseHeaders(origin)
+      });
+    } else {
+      user = await GithubOAuthUser.find();
+      return NextResponse.json({ user }, { status: 200, headers: getResponseHeaders(origin) });
+    }
   } catch (err) {
-    return NextResponse.json(
-      { message: err },
-      { status: 500, headers: getResponseHeaders(origin) }
-    );
+    return NextResponse.json({ message: err }, { status: 500, 
+    headers:getResponseHeaders(origin)
+    });
   }
 }
 export async function POST(request) {
