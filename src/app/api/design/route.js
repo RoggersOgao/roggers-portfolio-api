@@ -3,11 +3,6 @@ import dbConnect from "../../../../lib/dbConnect";
 import Design from "../../../../models/Design";
 import { NextResponse } from "next/server";
 
-const corHeaders = {
-  'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-}
 
 const designSchema = Joi.object({
   design: Joi.object(),
@@ -16,7 +11,7 @@ const designSchema = Joi.object({
 
 export async function GET(request) {
   await dbConnect();
-
+const origin = request.headers.get("origin")
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
   let designs;
@@ -26,13 +21,14 @@ export async function GET(request) {
     if (!designs) {
       return NextResponse.json(
         { message: "Design not found 💩" },
-        { status: 404 }
+        { status: 404 , headers:getResponseHeaders(origin)}
       );
     }
-    return NextResponse.json({ designs }, { status: 200 });
+    return NextResponse.json({ designs }, { status: 200, headers:getResponseHeaders(origin) });
   } else {
     designs = await Design.find();
-    return NextResponse.json({ designs }, { status: 200 });
+    return NextResponse.json({ designs }, { status: 200, 
+    headers: getResponseHeaders(origin) });
   }
 }
 
@@ -40,31 +36,32 @@ export async function GET(request) {
 
 export async function POST(request) {
   await dbConnect();
+  const origin = request.headers.get("origin")
   try {
     const res = await request.json();
     const { error, value } = designSchema.validate(res);
 
     if (error) {
 
-      return new Response({ message: "Invalid User input 💩", details: error.details }, {
+      return NextResponse.json({ message: "Invalid User input 💩", details: error.details }, {
         status: 400,
-        headers: corHeaders
+        headers: getResponseHeaders(origin)
       });
     }else{
         try{
             const design = await Design.create(value);
-            return new Response({message:"Design Uploaded successfully 👽", data:design}, {
+            return NextResponse.json({message:"Design Uploaded successfully 👽", data:design}, {
               status: 200,
-              headers: corHeaders
+              headers: getResponseHeaders(origin)
             });
         }catch(err){
-            console.log(err)
+            return NextResponse.json({message:error.message},{status: 500, headers: getResponseHeaders(origin)})
         }
     
     }
 
   } catch (err) {
-    return NextResponse.json({ error: err }, { status: 500 });
+    return NextResponse.json({ error: err }, { status: 500, headers: getResponseHeaders(origin) });
   }
 }
 
@@ -72,15 +69,16 @@ export async function POST(request) {
 
 export async function PUT(request) {
   await dbConnect();
+  const origin = request.headers.get("origin")
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
 
   const res = await request.json();
   const { error, value } = designSchema.validate(res);
   if (error) {
-    return new Response({ message: "Invalid User input 💩", details: error.details }, {
+    return NextResponse.json({ message: "Invalid User input 💩", details: error.details }, {
       status: 400,
-      headers: corHeaders
+      headers: getResponseHeaders(origin)
     });
   }
   try {
@@ -89,17 +87,20 @@ export async function PUT(request) {
       runValidator: true,
     });
     if (!design) {
-      return new Response({ message: "desing not found 💩", details: error.details }, {
+      return NextResponse.json({ message: "design not found 💩", details: error.details }, {
         status: 400,
-        headers: corHeaders
+        headers: getResponseHeaders(origin)
       });
     }
-    return new Response({message:"Design Updated successfully 👽", data:design}, {
+    return NextResponse.json({message:"Design Updated successfully 👽", data:design}, {
       status: 200,
-      headers: corHeaders
+      headers: getResponseHeaders(origin)
     });
   } catch (err) {
-    return NextResponse.json({ message: err.message }, { status: 500 });
+    return NextResponse.json({ message: err.message },
+       { status: 500,
+        headers:getResponseHeaders(origin)
+       });
   }
 }
 
@@ -107,6 +108,7 @@ export async function PUT(request) {
 
 export async function DELETE(request) {
   await dbConnect();
+  const origin = request.headers.get("origin")
 
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
@@ -114,20 +116,31 @@ export async function DELETE(request) {
   try {
     const design = await Design.findByIdAndDelete(id);
     if (!design) {
-      return new Response({ message: "Design not found 💩" }, {
+      return NextResponse.json({ message: "Design not found 💩" }, {
         status: 404,
-        headers: corHeaders
+        headers: getResponseHeaders(origin)
       });
     }
 
-    return new Response(
+    return NextResponse(
       { message: "Design deleted successfully 👽" },
       {
         status:200,
-        headers: corHeaders
+        headers: getResponseHeaders(origin)
       }
     )
   } catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: err.message }, { status: 500,
+    headers: getResponseHeaders(origin)
+    });
   }
+}
+
+
+function getResponseHeaders(origin) {
+  return {
+    "Access-Control-Allow-Origin": origin || "*",
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  };
 }

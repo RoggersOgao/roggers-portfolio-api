@@ -7,6 +7,7 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
   const email = searchParams.get("email");
+  const origin = request.headers.get("origin")
 
   let user;
   try {
@@ -15,32 +16,41 @@ export async function GET(request) {
       if (!user) {
         return NextResponse.json(
           { message: "user not found 💩" },
-          { status: 404 }
+          { status: 404,
+          headers:getResponseHeaders(origin)
+          }
         );
       }
-      return NextResponse.json({ user }, { status: 200 });
+      return NextResponse.json({ user }, { status: 200,
+        headers:getResponseHeaders(origin)
+      });
     } else if (email) {
       user = await GoogleOAuthUser.findOne({ email: email });
       if (!user) {
         return NextResponse.json(
           { message: "user not found 💩" },
-          { status: 404 }
+          { status: 404, 
+          headers:getResponseHeaders(origin) }
         );
       }
-      return NextResponse.json({ user }, { status: 200 });
+      return NextResponse.json({ user }, { status: 200, 
+        headers:getResponseHeaders(origin)
+      });
     } else {
       user = await GoogleOAuthUser.find();
-      return NextResponse.json({ user }, { status: 200 });
+      return NextResponse.json({ user }, { status: 200, headers: getResponseHeaders(origin) });
     }
   } catch (err) {
-    return NextResponse.json({ message: err }, { status: 500 });
+    return NextResponse.json({ message: err }, { status: 500, 
+    headers:getResponseHeaders(origin)
+    });
   }
 }
 export async function POST(request) {
   await dbConnect();
+  const origin = request.headers.get("origin")
   try {
     const res = await request.json();
-
     const { email } = res
     const userExists = await GoogleOAuthUser.findOne({ email });
     if (!userExists) {
@@ -48,13 +58,14 @@ export async function POST(request) {
       await newUser.save();
     }
     // Return a success response
-    return NextResponse.json("User created successfully 👽", { status: 201 });
+    return NextResponse.json("User created successfully 👽", { status: 201, headers:getResponseHeaders(origin) });
   } catch (err) {
-    console.log(err.message);
+    return NextResponse.json({error:err.message}, {status:500, headers:getResponseHeaders(origin)})
   }
 }
 export async function DELETE(request) {
   await dbConnect();
+  const origin = request.headers.get("origin")
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
@@ -62,15 +73,25 @@ export async function DELETE(request) {
     if (!user) {
       return NextResponse.json(
         { message: "user not found 💩" },
-        { status: 404 }
+        { status: 404, 
+        headers: getResponseHeaders(origin) }
       );
     } else {
       return NextResponse.json(
         { message: "User deleted successfully 👽" },
-        { status: 200 }
+        { status: 200,
+        headers: getResponseHeaders(origin)
+        }
       );
     }
   } catch (err) {
-    return NextResponse.json({ message: err }, { status: 500 });
+    return NextResponse.json({ message: err }, { status: 500, headers: getResponseHeaders(origin) });
   }
+}
+function getResponseHeaders(origin) {
+  return {
+    "Access-Control-Allow-Origin": origin || "*",
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  };
 }

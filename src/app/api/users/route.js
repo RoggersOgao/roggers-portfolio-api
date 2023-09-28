@@ -1,4 +1,3 @@
-import bcrypt from "bcryptjs";
 import Joi from "joi";
 import dbConnect from "../../../../lib/dbConnect";
 import User from "../../../../models/User";
@@ -33,33 +32,40 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
   const email = searchParams.get("email");
+  const origin = request.headers.get("origin")
   let users;
   if (id) {
     users = await User.findById(id);
     if (!users) {
       return NextResponse.json(
         { message: "User not found 💩" },
-        { status: 404 }
+        { status: 404, 
+        headers:getResponseHeaders(origin) }
       );
     }
-    return NextResponse.json({ users }, { status: 200 });
+    return NextResponse.json({ users }, { status: 200,
+    headers:getResponseHeaders(origin) });
   } else if(email){
     users = await User.findOne({email: email});
     if(!users){
       return NextResponse.json(
         { message: "User not found 💩" },
-        { status: 404 }
+        { status: 404, 
+        headers:getResponseHeaders(origin) }
       );
     }
-    return NextResponse.json({ users }, { status: 200 });
+    return NextResponse.json({ users }, { status: 200,
+    headers:getResponseHeaders(origin) });
   } else {
     users = await User.find();
-    return NextResponse.json({ users }, { status: 200 });
+    return NextResponse.json({ users }, { status: 200,
+    headers:getResponseHeaders(origin) });
   }
 }
 
 export async function POST(request) {
   await dbConnect();
+  const origin = request.headers.get("origin")
   try {
     const res = await request.json();
     const { error, value } = usersSchema.validate(res);
@@ -67,7 +73,8 @@ export async function POST(request) {
     if (error) {
       return NextResponse.json(
         { message: "Invalid User input 💩", details: error.details },
-        { status: 400 }
+        { status: 400,
+        headers:getResponseHeaders(origin) }
       );
     }
 
@@ -93,21 +100,24 @@ export async function POST(request) {
       await newUser.save();
     }
     // Return a success response
-    return NextResponse.json("User created successfully 👽", { status: 201 });
+    return NextResponse.json("User created successfully 👽", { status: 201,
+    header:getResponseHeaders(origin) });
 
   } catch (err) {
-    return NextResponse.json({ error: err }, { status: 500 });
+    return NextResponse.json({ error: err }, { status: 500,
+    headers:getResponseHeaders(origin) });
   }
 }
 export async function PUT(request) {
   await dbConnect();
+  const origin = request.headers.get("origin")
   try {
     const res = await request.json();
     const { error, value } = usersSchema.validate(res);
     if (error) {
       return NextResponse.json(
         { message: "Invalid User input 💩", details: error.details },
-        { status: 400 }
+        { status: 400, headers:getResponseHeaders(origin) }
       );
     }
     const { searchParams } = new URL(request.url);
@@ -131,22 +141,30 @@ export async function PUT(request) {
       }
       
       if (!user) {
-        return NextResponse.json({ message: "User not found 💩" });
+        return NextResponse.json({ message: "User not found 💩" }, 
+        {status: 404, 
+        headers:getResponseHeaders(origin)});
       }
       return NextResponse.json(
         { message: "User updated successfully! 👻", user },
-        { status: 200 }
+        { status: 200,
+        headers:getResponseHeaders(origin) }
       );
     } catch (err) {
-      return NextResponse.json({ message: err });
+      return NextResponse.json({ message: err }, 
+        {status:500, 
+        headers:getResponseHeaders(origin)});
     }
   } catch (err) {
-    return NextResponse.json({ error: err }, { status: 500 });
+    return NextResponse.json({ error: err }, { status: 500,
+      headers:getResponseHeaders(origin) 
+    });
   }
 }
 
 export async function DELETE(request) {
   await dbConnect();
+  const origin = request.headers.get("origin")
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
@@ -154,18 +172,29 @@ export async function DELETE(request) {
     if (!user) {
       return NextResponse.json(
         { message: "User not found 💩" },
-        { status: 404 }
+        { status: 404,
+        headers:getResponseHeaders("origin") }
       );
     }
 
     return NextResponse.json(
       { message: "User deleted successfully 👽" },
-      { status: 200 }
+      { status: 200,
+      headers:getResponseHeaders(origin) }
     );
   } catch (err) {
     return NextResponse.json(
       { message: "Internal server error" },
-      { status: 500 }
+      { status: 500,
+       headers:getResponseHeaders(origin)}
     );
   }
+}
+
+function getResponseHeaders(origin) {
+  return {
+    "Access-Control-Allow-Origin": origin || "*",
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  };
 }
