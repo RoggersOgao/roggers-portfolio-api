@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
 import { headers } from "next/headers"
  
-const allowedOrigins = process.env.NODE_ENV === "production" 
-? [ 'https://roggers-portfolio-admin.vercel.app, https://roggers-portfolio-api.vercel.app'] : ['http://localhost:3000', "https://roggers-portfolio-admin.vercel.app"]
+const allowedOrigins =  [ 'https://roggers-portfolio-admin.vercel.app, https://roggers-portfolio-api.vercel.app', 'http://localhost:3000'] 
 // This function can be marked `async` if using `await` inside
 export function middleware(request) {
     
