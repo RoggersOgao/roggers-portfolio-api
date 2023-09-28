@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import dbConnect from "../../../../lib/dbConnect";
 import Project from "../../../../models/Project"
-
+import { headers } from "next/headers";
 export async function GET(request){
     await dbConnect()
-    const origin = request.headers.get("origin")
+    const headersList = headers()
+ const origin = headersList.get('origin')
     try {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get("id");
@@ -34,7 +35,8 @@ export async function GET(request){
 }
 export async function POST(request){
     await dbConnect()
-    const origin = request.headers.get("origin")
+    const headersList = headers()
+ const origin = headersList.get('origin')
     try{
         const res = await request.json()
         const {projectName, projectLink} = res
@@ -64,7 +66,8 @@ export async function PUT(request) {
     await dbConnect();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
-    const origin = request.headers.get("origin")
+    const headersList = headers()
+ const origin = headersList.get('origin')
   
     const res = await request.json();
     try {
@@ -96,7 +99,8 @@ export async function PUT(request) {
     await dbConnect();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
-    const origin = request.headers.get("origin")
+    const headersList = headers()
+ const origin = headersList.get('origin')
   
     try {
       const project = await Project.findByIdAndDelete(id);
@@ -120,7 +124,7 @@ export async function PUT(request) {
   
   function getResponseHeaders(origin) {
     return {
-      "Access-Control-Allow-Origin": origin || "*",
+      "Access-Control-Allow-Origin": origin,
       "Content-Type": "application/json",
       "Access-Control-Allow-Headers": "Content-Type, Authorization",
     };

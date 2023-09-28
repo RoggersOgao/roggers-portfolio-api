@@ -3,7 +3,7 @@ import dbConnect from "../../../../lib/dbConnect"
 import HomeMail from "../../../../models/HomeMail"
 import sendEmail from "../../../../sendEmail"
 import { NextResponse } from "next/server"
-
+import { headers } from "next/headers";
 
 // defining the validation schema using joi... for the mail model
 
@@ -17,7 +17,8 @@ const mailSchema = Joi.object({
 export async function POST(request) {
 
     await dbConnect()
-    const origin = request.headers.get("origin")
+    const headersList = headers()
+ const origin = headersList.get('origin')
 
     try {
         const res = await request.json()
@@ -70,7 +71,7 @@ export async function POST(request) {
 
 function getResponseHeaders(origin) {
     return {
-      "Access-Control-Allow-Origin": origin || "*",
+      "Access-Control-Allow-Origin": origin,
       "Content-Type": "application/json",
       "Access-Control-Allow-Headers": "Content-Type, Authorization",
     };

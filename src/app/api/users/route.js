@@ -2,6 +2,7 @@ import Joi from "joi";
 import dbConnect from "../../../../lib/dbConnect";
 import User from "../../../../models/User";
 import { NextResponse } from "next/server";
+import { headers } from "next/headers";
 
 const socialSchema = Joi.object({
   linkedIn: Joi.string().optional().allow(""),
@@ -32,7 +33,8 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
   const email = searchParams.get("email");
-  const origin = request.headers.get("origin")
+  const headersList = headers()
+ const origin = headersList.get('origin')
   let users;
   if (id) {
     users = await User.findById(id);
@@ -65,7 +67,8 @@ export async function GET(request) {
 
 export async function POST(request) {
   await dbConnect();
-  const origin = request.headers.get("origin")
+  const headersList = headers()
+ const origin = headersList.get('origin')
   try {
     const res = await request.json();
     const { error, value } = usersSchema.validate(res);
@@ -110,7 +113,8 @@ export async function POST(request) {
 }
 export async function PUT(request) {
   await dbConnect();
-  const origin = request.headers.get("origin")
+  const headersList = headers()
+ const origin = headersList.get('origin')
   try {
     const res = await request.json();
     const { error, value } = usersSchema.validate(res);
@@ -164,7 +168,8 @@ export async function PUT(request) {
 
 export async function DELETE(request) {
   await dbConnect();
-  const origin = request.headers.get("origin")
+  const headersList = headers()
+ const origin = headersList.get('origin')
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
@@ -193,7 +198,7 @@ export async function DELETE(request) {
 
 function getResponseHeaders(origin) {
   return {
-    "Access-Control-Allow-Origin": origin || "*",
+    "Access-Control-Allow-Origin": origin,
     "Content-Type": "application/json",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
   };

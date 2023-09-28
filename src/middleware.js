@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server'
+import { headers } from "next/headers"
  
 const allowedOrigins = process.env.NODE_ENV === "production" 
-? [ 'https://roggers-portfolio-admin.vercel.app'] :
-['http://localhost:3000']
+? [ 'https://roggers-portfolio-admin.vercel.app, https://roggers-portfolio-api.vercel.app'] : ['http://localhost:3000', "https://www.google.com"]
 // This function can be marked `async` if using `await` inside
 export function middleware(request) {
     
     console.log("Middleware")
-  const origin = request.headers.get("origin")
-    console.log(origin)
+    const headersList = headers()
+    const origin = headersList.get('origin')
+    // console.log(origin)
     // if ( origin && !allowedOrigins.includes(origin) || !origin)
     
     if ( origin && !allowedOrigins.includes(origin)){
@@ -20,9 +21,6 @@ export function middleware(request) {
             }
         })
     }
-  if(request.url.includes("/api")){
-
-  }
 //   console.log(request.method)
 //   console.log(request.url)
 

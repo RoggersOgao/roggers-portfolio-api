@@ -4,6 +4,7 @@ import dbConnect from "../../../../../lib/dbConnect";
 import CredentialsOAuthUser from "../../../../../models/CredentialsOAuthUser";
 import User from "../../../../../models/User";
 import { NextResponse } from "next/server";
+import { headers } from "next/headers";
 
 const socialSchema = Joi.string().optional();
 const personalSchema = Joi.string().max(600).optional();
@@ -31,7 +32,9 @@ async function findUserByEmailOrId(email, id) {
 }
 
 export async function GET(request) {
-  const origin = request.headers.get("origin");
+  const headersList = headers()
+    const origin = headersList.get('origin')
+
   await dbConnect();
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
@@ -40,18 +43,19 @@ export async function GET(request) {
   const users = await findUserByEmailOrId(email, id);
 
   if (!users) {
-    return NextResponse.json(
+    return new NextResponse.json(
       { message: "User not found 💩" },
       { status: 404, headers: getResponseHeaders(origin) }
     );
   }
 
-  return NextResponse.json({ users }, { status: 200 });
+  return  NextResponse.json({ users }, { status: 200, headers:getResponseHeaders(origin) });
 }
 
 export async function POST(request) {
   await dbConnect();
-  const origin = request.headers.get("origin");
+  const headersList = headers()
+  const origin = headersList.get('origin')
 
   try {
     const res = await request.json();
@@ -121,7 +125,8 @@ export async function POST(request) {
 
 export async function DELETE(request) {
   await dbConnect();
-  const origin = request.headers.get("origin");
+  const headersList = headers()
+  const origin = headersList.get('origin')
 
   try {
     const { searchParams } = new URL(request.url);
@@ -149,8 +154,7 @@ export async function DELETE(request) {
 
 function getResponseHeaders(origin) {
   return {
-    "Access-Control-Allow-Origin": origin || "*",
+    "Access-Control-Allow-Origin": origin,
     "Content-Type": "application/json",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
   };
 }

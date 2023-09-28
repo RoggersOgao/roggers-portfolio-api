@@ -2,7 +2,7 @@ import Joi from "joi";
 import dbConnect from "../../../../lib/dbConnect";
 import Design from "../../../../models/Design";
 import { NextResponse } from "next/server";
-
+import { headers } from "next/headers";
 
 const designSchema = Joi.object({
   design: Joi.object(),
@@ -11,7 +11,8 @@ const designSchema = Joi.object({
 
 export async function GET(request) {
   await dbConnect();
-const origin = request.headers.get("origin")
+const headersList = headers()
+ const origin = headersList.get('origin')
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
   let designs;
@@ -36,7 +37,8 @@ const origin = request.headers.get("origin")
 
 export async function POST(request) {
   await dbConnect();
-  const origin = request.headers.get("origin")
+  const headersList = headers()
+ const origin = headersList.get('origin')
   try {
     const res = await request.json();
     const { error, value } = designSchema.validate(res);
@@ -69,7 +71,8 @@ export async function POST(request) {
 
 export async function PUT(request) {
   await dbConnect();
-  const origin = request.headers.get("origin")
+  const headersList = headers()
+ const origin = headersList.get('origin')
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
 
@@ -108,7 +111,8 @@ export async function PUT(request) {
 
 export async function DELETE(request) {
   await dbConnect();
-  const origin = request.headers.get("origin")
+  const headersList = headers()
+ const origin = headersList.get('origin')
 
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
@@ -139,7 +143,7 @@ export async function DELETE(request) {
 
 function getResponseHeaders(origin) {
   return {
-    "Access-Control-Allow-Origin": origin || "*",
+    "Access-Control-Allow-Origin": origin,
     "Content-Type": "application/json",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
   };

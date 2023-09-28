@@ -1,13 +1,15 @@
 import dbConnect from "../../../../../lib/dbConnect";
 import GithubOAuthUser from "../../../../../models/GithubOAuthUser";
 import { NextResponse } from "next/server";
+import { headers } from "next/headers";
 
 export async function GET(request) {
   await dbConnect();
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
   const email = searchParams.get("email");
-  const origin = request.headers.get("origin");
+  const headersList = headers()
+ const origin = headersList.get('origin');
 
   let user;
   try {
@@ -48,7 +50,8 @@ export async function GET(request) {
 }
 export async function POST(request) {
   await dbConnect();
-  const origin = request.headers.get("origin");
+  const headersList = headers()
+ const origin = headersList.get('origin');
   try {
     const res = await request.json();
     const { email } = res;
@@ -56,15 +59,20 @@ export async function POST(request) {
     if (!userExists) {
       const newUser = new GithubOAuthUser(res);
       await newUser.save();
+      // Return a success response
+      return NextResponse.json("User created successfully 👽",
+       { status: 201, headers: getResponseHeaders(origin) });
     }
-    // Return a success response
-    return NextResponse.json("User created successfully 👽",
-     { status: 201, headers: getResponseHeaders(origin) });
-  } catch (err) {}
+  } catch (err) {
+    return NextResponse.json({ message: err }, { status: 500, 
+      headers:getResponseHeaders(origin)
+      });
+  }
 }
 export async function DELETE(request) {
   await dbConnect();
-  const origin = request.headers.get("origin")
+  const headersList = headers()
+ const origin = headersList.get('origin')
 
   try {
     const { searchParams } = new URL(request.url);
@@ -89,7 +97,7 @@ export async function DELETE(request) {
 
 function getResponseHeaders(origin) {
   return {
-    "Access-Control-Allow-Origin": origin || "*",
+    "Access-Control-Allow-Origin": origin,
     "Content-Type": "application/json",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
   };
