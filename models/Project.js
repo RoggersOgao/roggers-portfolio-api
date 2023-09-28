@@ -10,15 +10,12 @@ const uploadedFileSchema = new mongoose.Schema(
     },
     original_filename: {
       type: String,
-      required: true,
     },
     original_extension: {
       type: String,
-      required: true,
     },
     bytes: {
       type: Number,
-      required: true,
     },
   });
 

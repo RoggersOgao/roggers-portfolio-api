@@ -14,11 +14,9 @@ const uploadedFileSchema = new mongoose.Schema(
     },
     original_extension: {
       type: String,
-      required: true,
     },
     bytes: {
       type: Number,
-      required: true,
     },
   });
 const DesignSchema = new mongoose.Schema({
