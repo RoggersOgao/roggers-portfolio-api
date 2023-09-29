@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server'
 import { headers } from "next/headers"
  
-const allowedOrigins =  [ 'https://roggers-portfolio-admin.vercel.app, https://roggers-portfolio-api.vercel.app', 'http://localhost:3000'] 
+const allowedOrigins =  [ `${process.env.CLIENT_SITE}`, 'https://roggers-portfolio-api.vercel.app', 'http://localhost:3000'] 
 // This function can be marked `async` if using `await` inside
 export function middleware(request) {
     
     console.log("Middleware")
+    console.log(process.env.NODE_ENV)
     const headersList = headers()
     const origin = headersList.get('origin')
-    // console.log(origin)
+    console.log(origin)
     // if ( origin && !allowedOrigins.includes(origin) || !origin)
     
     if ( origin && !allowedOrigins.includes(origin)){
