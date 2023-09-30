@@ -32,8 +32,8 @@ async function findUserByEmailOrId(email, id) {
 }
 
 export async function GET(request) {
-  const headersList = headers()
-    const origin = headersList.get('origin')
+  const headersList = headers();
+  const origin = headersList.get("origin");
 
   await dbConnect();
   const { searchParams } = new URL(request.url);
@@ -49,13 +49,16 @@ export async function GET(request) {
     );
   }
 
-  return  NextResponse.json({ users }, { status: 200, headers:getResponseHeaders(origin) });
+  return NextResponse.json(
+    { users },
+    { status: 200, headers: getResponseHeaders(origin) }
+  );
 }
 
 export async function POST(request) {
   await dbConnect();
-  const headersList = headers()
-  const origin = headersList.get('origin')
+  const headersList = headers();
+  const origin = headersList.get("origin");
 
   try {
     const res = await request.json();
@@ -63,7 +66,7 @@ export async function POST(request) {
 
     if (error) {
       return NextResponse.json(
-        { message: "Invalid User input 💩", details: error.details },
+        { message: "Invalid User input", details: error.details },
         { status: 400, headers: getResponseHeaders(origin) }
       );
     }
@@ -83,6 +86,10 @@ export async function POST(request) {
         role,
       });
       await newUser.save();
+      return NextResponse.json(
+        { message: "User created successfully" },
+        { status: 201, headers: getResponseHeaders(origin) }
+      );
     }
 
     // Check if the user exists in the CredentialsOAuthUser model
@@ -90,7 +97,7 @@ export async function POST(request) {
 
     if (credUserExists) {
       return NextResponse.json(
-        { message: "The user already exists in CredentialsOAuthUser ☹️" },
+        { message: "The user already exists in CredentialsOAuthUser" },
         { status: 409, headers: getResponseHeaders(origin) }
       );
     }
@@ -109,15 +116,15 @@ export async function POST(request) {
         role,
       });
       await newUser.save();
+      return NextResponse.json(
+        { message: "User created successfully" },
+        { status: 201, headers: getResponseHeaders(origin) }
+      );
     }
-
-    return NextResponse.json("User created successfully 👽", {
-      status: 201,
-      headers: getResponseHeaders(origin),
-    });
   } catch (err) {
+    console.error(err); // Log the error for debugging purposes
     return NextResponse.json(
-      { error: err },
+      { error: "Internal Server Error" },
       { status: 500, headers: getResponseHeaders(origin) }
     );
   }
@@ -125,8 +132,8 @@ export async function POST(request) {
 
 export async function DELETE(request) {
   await dbConnect();
-  const headersList = headers()
-  const origin = headersList.get('origin')
+  const headersList = headers();
+  const origin = headersList.get("origin");
 
   try {
     const { searchParams } = new URL(request.url);
@@ -156,5 +163,6 @@ function getResponseHeaders(origin) {
   return {
     "Access-Control-Allow-Origin": origin,
     "Content-Type": "application/json",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
   };
 }

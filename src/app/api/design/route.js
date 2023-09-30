@@ -126,7 +126,7 @@ export async function DELETE(request) {
       });
     }
 
-    return NextResponse(
+    return NextResponse.json(
       { message: "Design deleted successfully 👽" },
       {
         status:200,
