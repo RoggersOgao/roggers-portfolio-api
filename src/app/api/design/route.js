@@ -53,7 +53,7 @@ export async function POST(request) {
         try{
             const design = await Design.create(value);
             return NextResponse.json({message:"Design Uploaded successfully 👽", data:design}, {
-              status: 200,
+              status: 201,
               headers: getResponseHeaders(origin)
             });
         }catch(err){
