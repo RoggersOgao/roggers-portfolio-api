@@ -52,7 +52,7 @@ export async function POST(request) {
     }else{
         try{
             const design = await Design.create(value);
-            return NextResponse.json({message:"Design Uploaded successfully 👽"}, {
+            return NextResponse.json({message:"Design Uploaded successfully 👽", design}, {
               status: 201,
               headers: getResponseHeaders(origin)
             });
