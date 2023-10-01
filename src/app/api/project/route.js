@@ -50,8 +50,8 @@ export async function POST(request){
         }
         try{
           const project = await Project.create(res)
-          return NextResponse.json({message:"Project Uploaded successfully 👽", data:project},
-           { status: 201, headers:getResponseHeaders(origin) });
+          return NextResponse.json({message:"Project Uploaded successfully 👽"},
+           { status: 201, headers: getResponseHeaders(origin) });
         }catch(err){
           return NextResponse.json({error:err.message}, {status:500, headers:getResponseHeaders(origin)})
         }
