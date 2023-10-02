@@ -77,6 +77,10 @@ export async function POST(request) {
     const userExists = await User.findOne({ email });
 
     if (!userExists) {
+      // User doesn't exist, create a new user in both models
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+
       const newUser = new User({
         name,
         email,
@@ -86,27 +90,8 @@ export async function POST(request) {
         role,
       });
       await newUser.save();
-      return NextResponse.json(
-        { message: "User created successfully" },
-        { status: 201, headers: getResponseHeaders(origin) }
-      );
-    }
 
-    // Check if the user exists in the CredentialsOAuthUser model
-    const credUserExists = await CredentialsOAuthUser.findOne({ email });
-
-    if (credUserExists) {
-      return NextResponse.json(
-        { message: "The user already exists in CredentialsOAuthUser" },
-        { status: 409, headers: getResponseHeaders(origin) }
-      );
-    }
-
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    if (!credUserExists) {
-      const newUser = new CredentialsOAuthUser({
+      const newCredentialsUser = new CredentialsOAuthUser({
         name,
         email,
         password: hashedPassword,
@@ -115,12 +100,26 @@ export async function POST(request) {
         personalInfo,
         role,
       });
-      await newUser.save();
+      await newCredentialsUser.save();
+
       return NextResponse.json(
         { message: "User created successfully" },
         { status: 201, headers: getResponseHeaders(origin) }
       );
     }
+
+    // User exists, update the User model
+    userExists.name = name;
+    userExists.image = image;
+    userExists.socials = socials;
+    userExists.personalInfo = personalInfo;
+    userExists.role = role;
+    await userExists.save();
+
+    return NextResponse.json(
+      { message: "User updated successfully" },
+      { status: 200, headers: getResponseHeaders(origin) }
+    );
   } catch (err) {
     console.error(err); // Log the error for debugging purposes
     return NextResponse.json(
