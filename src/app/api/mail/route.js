@@ -14,11 +14,42 @@ const mailSchema = Joi.object({
 })
 
 
+export async function GET(request){
+    await dbConnect()
+    const headersList = headers()
+    const origin = headersList.get('origin')
+    try {
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get("id");
+        let mail;
+    
+        if (id) {
+            // Make sure the Project model and findById method are defined and working correctly.
+            mail = await HomeMail.findById(id);
+    
+            if (!mail) {
+                return NextResponse.json({ message: "Mail not found 💩" },
+                 { status: 404, headers:getResponseHeaders(origin) });
+            }
+            return NextResponse.json({mail}, {status:200,
+            headers:getResponseHeaders(origin)
+            })
+        } else {
+            // Make sure the Project model and find method are defined and working correctly.
+            mail = await HomeMail.find();
+            return NextResponse.json({ mail }, { status: 200, headers:getResponseHeaders(origin) });
+        }
+    } catch (err) {
+       return NextResponse.json({ message: err.message },
+       { status: 500, headers:getResponseHeaders(origin) });
+    }
+    
+}
 export async function POST(request) {
 
     await dbConnect()
     const headersList = headers()
- const origin = headersList.get('origin')
+    const origin = headersList.get('origin')
 
     try {
         const res = await request.json()
