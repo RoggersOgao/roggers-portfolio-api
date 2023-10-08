@@ -24,7 +24,7 @@ export async function GET(request){
             })
         } else {
             // Make sure the Project model and find method are defined and working correctly.
-            projects = await Project.find();
+            projects = await Project.find().sort({ createdAt: -1 });
             return NextResponse.json({ projects }, { status: 200, headers:getResponseHeaders(origin) });
         }
     } catch (err) {

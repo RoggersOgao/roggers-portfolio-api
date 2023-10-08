@@ -59,7 +59,7 @@ export async function GET(request) {
     return NextResponse.json({ users }, { status: 200,
     headers:getResponseHeaders(origin) });
   } else {
-    users = await User.find();
+    users = await User.find().sort({ createdAt: -1 });
     return NextResponse.json({ users }, { status: 200,
     headers:getResponseHeaders(origin) });
   }

@@ -27,7 +27,7 @@ const headersList = headers()
     }
     return NextResponse.json({ designs }, { status: 200, headers:getResponseHeaders(origin) });
   } else {
-    designs = await Design.find();
+    designs = await Design.find().sort({ createdAt: -1 });
     return NextResponse.json({ designs }, { status: 200, 
     headers: getResponseHeaders(origin) });
   }
