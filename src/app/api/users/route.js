@@ -137,12 +137,12 @@ export async function PUT(request) {
     try {
       let user;
       if (id) {
-        user = await User.findByIdAndUpdate(id, value, {
+        user = await User.findByIdAndUpdate(id, {$set: value}, {
           new: true,
           runValidators: true,
         });
       } else if (email) {
-        user = await User.findOneAndUpdate({ email: email }, value, {
+        user = await User.findOneAndUpdate({ email: email }, {$set: value}, {
           new: true,
           runValidators: true,
         });
