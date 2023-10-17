@@ -21,54 +21,59 @@ const personalSchema = Joi.object({
 const usersSchema = Joi.object({
   name: Joi.string().max(60).required(),
   email: Joi.string().trim().lowercase().email().required(),
-  image: Joi.string().uri({ scheme: ["https"] }).optional(),
+  image: Joi.string()
+    .uri({ scheme: ["https"] })
+    .optional(),
   socials: Joi.array().items(socialSchema).optional().default([]),
   personalInfo: Joi.array().items(personalSchema).optional().default([]),
   role: Joi.string().optional(),
 });
-
 
 export async function GET(request) {
   await dbConnect();
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
   const email = searchParams.get("email");
-  const headersList = headers()
- const origin = headersList.get('origin')
+  const headersList = headers();
+  const origin = headersList.get("origin");
   let users;
   if (id) {
     users = await User.findById(id);
     if (!users) {
       return NextResponse.json(
         { message: "User not found 💩" },
-        { status: 404, 
-        headers:getResponseHeaders(origin) }
+        { status: 404, headers: getResponseHeaders(origin) }
       );
     }
-    return NextResponse.json({ users }, { status: 200,
-    headers:getResponseHeaders(origin) });
-  } else if(email){
-    users = await User.findOne({email: email});
-    if(!users){
+    return NextResponse.json(
+      { users },
+      { status: 200, headers: getResponseHeaders(origin) }
+    );
+  } else if (email) {
+    users = await User.findOne({ email: email });
+    if (!users) {
       return NextResponse.json(
         { message: "User not found 💩" },
-        { status: 404, 
-        headers:getResponseHeaders(origin) }
+        { status: 404, headers: getResponseHeaders(origin) }
       );
     }
-    return NextResponse.json({ users }, { status: 200,
-    headers:getResponseHeaders(origin) });
+    return NextResponse.json(
+      { users },
+      { status: 200, headers: getResponseHeaders(origin) }
+    );
   } else {
     users = await User.find().sort({ createdAt: -1 });
-    return NextResponse.json({ users }, { status: 200,
-    headers:getResponseHeaders(origin) });
+    return NextResponse.json(
+      { users },
+      { status: 200, headers: getResponseHeaders(origin) }
+    );
   }
 }
 
 export async function POST(request) {
   await dbConnect();
-  const headersList = headers()
- const origin = headersList.get('origin')
+  const headersList = headers();
+  const origin = headersList.get("origin");
   try {
     const res = await request.json();
     const { error, value } = usersSchema.validate(res);
@@ -76,12 +81,11 @@ export async function POST(request) {
     if (error) {
       return NextResponse.json(
         { message: "Invalid User input 💩", details: error.details },
-        { status: 400,
-        headers:getResponseHeaders(origin) }
+        { status: 400, headers: getResponseHeaders(origin) }
       );
     }
 
-    const {email} = value
+    const { email } = value;
 
     // Check if the user exists in the User model
     const userExists = await User.findOne({ email });
@@ -89,11 +93,10 @@ export async function POST(request) {
     if (userExists) {
       // Update the user in the User model
 
-      await User.findOneAndUpdate(
-        { email },
-        value,
-        { new: true, runValidators: true }
-      );
+      await User.findOneAndUpdate({ email }, value, {
+        new: true,
+        runValidators: true,
+      });
     }
 
     // If the user doesn't exist in either model, create a new user
@@ -103,31 +106,33 @@ export async function POST(request) {
       await newUser.save();
     }
     // Return a success response
-    return NextResponse.json("User created successfully 👽", { status: 201,
-    header:getResponseHeaders(origin) });
-
+    return NextResponse.json("User created successfully 👽", {
+      status: 201,
+      header: getResponseHeaders(origin),
+    });
   } catch (err) {
-    return NextResponse.json({ error: err }, { status: 500,
-    headers:getResponseHeaders(origin) });
+    return NextResponse.json(
+      { error: err },
+      { status: 500, headers: getResponseHeaders(origin) }
+    );
   }
 }
 export async function PUT(request) {
   await dbConnect();
-  const headersList = headers()
- const origin = headersList.get('origin')
+  const headersList = headers();
+  const origin = headersList.get("origin");
   try {
     const res = await request.json();
     const { error, value } = usersSchema.validate(res);
     if (error) {
       return NextResponse.json(
         { message: "Invalid User input 💩", details: error.details },
-        { status: 400, headers:getResponseHeaders(origin) }
+        { status: 400, headers: getResponseHeaders(origin) }
       );
     }
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
     const email = searchParams.get("email");
-
 
     try {
       let user;
@@ -136,40 +141,95 @@ export async function PUT(request) {
           new: true,
           runValidators: true,
         });
-        
       } else if (email) {
         user = await User.findOneAndUpdate({ email: email }, value, {
           new: true,
           runValidators: true,
         });
       }
-      
+
       if (!user) {
-        return NextResponse.json({ message: "User not found 💩" }, 
-        {status: 404, 
-        headers:getResponseHeaders(origin)});
+        return NextResponse.json(
+          { message: "User not found 💩" },
+          { status: 404, headers: getResponseHeaders(origin) }
+        );
       }
       return NextResponse.json(
         { message: "User updated successfully! 👻", user },
-        { status: 200,
-        headers:getResponseHeaders(origin) }
+        { status: 200, headers: getResponseHeaders(origin) }
       );
     } catch (err) {
-      return NextResponse.json({ message: err }, 
-        {status:500, 
-        headers:getResponseHeaders(origin)});
+      return NextResponse.json(
+        { message: err },
+        { status: 500, headers: getResponseHeaders(origin) }
+      );
     }
   } catch (err) {
-    return NextResponse.json({ error: err }, { status: 500,
-      headers:getResponseHeaders(origin) 
-    });
+    return NextResponse.json(
+      { error: err },
+      { status: 500, headers: getResponseHeaders(origin) }
+    );
   }
 }
 
+export async function PATCH(request) {
+  try {
+    await dbConnect();
+    const headersList = headers();
+    const origin = headersList.get('origin');
+    
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    const emailReq = searchParams.get('email');
+    
+    if (!id && !emailReq) {
+      return NextResponse.json({ message: 'Invalid request: Missing id or email' }, { status: 400, headers: getResponseHeaders(origin) });
+    }
+
+    const res = await request.json();
+    const { error, value } = usersSchema.validate(res);
+
+    if (error) {
+      return NextResponse.json({ message: 'Invalid User input 💩', details: error.details }, { status: 400, headers: getResponseHeaders(origin) });
+    }
+
+    const userQuery = id ? { _id: id } : { email: emailReq };
+    const userFound = await User.findOne(userQuery);
+
+    if (!userFound) {
+      return NextResponse.json({ message: 'User not found' }, { status: 404, headers: getResponseHeaders(origin) });
+    }
+
+    // Update user fields if they exist in the request
+    if (value.name) userFound.name = value.name;
+    if (value.email) userFound.email = value.email;
+    if (value.image) userFound.image = value.image;
+    if (value.role) userFound.role = value.role;
+
+    // Update the social information if it exists in the request
+    if (value.socials) {
+      userFound.socials = { ...userFound.socials, ...value.socials };
+    }
+
+    // Update personalInfo fields if they exist in the request
+    if (value.personalInfo) {
+      userFound.personalInfo = { ...userFound.personalInfo, ...value.personalInfo };
+    }
+
+    // Save the updated user
+    const updatedUser = await userFound.save();
+
+    return NextResponse.json({ message: 'User updated successfully! 👻', user: updatedUser }, { status: 200, headers: getResponseHeaders(origin) });
+  } catch (err) {
+    return NextResponse.json({ message: err }, { status: 500, headers: getResponseHeaders(origin) });
+  }
+}
+
+
 export async function DELETE(request) {
   await dbConnect();
-  const headersList = headers()
- const origin = headersList.get('origin')
+  const headersList = headers();
+  const origin = headersList.get("origin");
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
@@ -177,21 +237,18 @@ export async function DELETE(request) {
     if (!user) {
       return NextResponse.json(
         { message: "User not found 💩" },
-        { status: 404,
-        headers:getResponseHeaders("origin") }
+        { status: 404, headers: getResponseHeaders("origin") }
       );
     }
 
     return NextResponse.json(
       { message: "User deleted successfully 👽" },
-      { status: 200,
-      headers:getResponseHeaders(origin) }
+      { status: 200, headers: getResponseHeaders(origin) }
     );
   } catch (err) {
     return NextResponse.json(
       { message: "Internal server error" },
-      { status: 500,
-       headers:getResponseHeaders(origin)}
+      { status: 500, headers: getResponseHeaders(origin) }
     );
   }
 }
